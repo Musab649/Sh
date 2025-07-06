@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>نظام كاشير المسالخ</title>
+<style>
+  /* CSS كامل هنا */
+  * {
+    box-sizing: border-box;
+    margin: 0; padding: 0;
+  }
+  body {
+    font-family: 'Arial', sans-serif;
+    background: #f3f6f9;
+    color: #333;
+    direction: rtl;
+    padding: 20px;
+  }
+  .section { display: none; }
+  .section.active { display: block; }
+  .blinking {
+    animation: blinkingText 1.5s infinite;
+    font-size: 24px;
+    font-weight: bold;
+    color: #2c3e50;
+    text-align: center;
+    margin-top: 100px;
+  }
+  @keyframes blinkingText {
+    0%,100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  h2 { margin-bottom: 20px; color: #2c3e50; font-weight: bold; text-align: center; }
+  button {
+    background-color: #3498db;
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    margin: 8px 5px;
+    cursor: pointer;
+    border-radius: 6px;
+    font-size: 16px;
+    transition: background-color 0.3s;
+  }
+  button:hover { background-color: #2980b9; }
+  input[type="text"], input[type="number"], select {
+    padding: 8px 10px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    width: 100%;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 15px;
+  }
+  table th, table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+    font-size: 15px;
+  }
+  table th {
+    background-color: #3498db;
+    color: white;
+  }
+  table tr:hover { background-color: #ecf0f1; }
+  .inline-row {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+  }
+  .inline-item { flex: 1 1 150px; }
+  .centered {
+    text-align: center;
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+  #clock {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    font-weight: bold;
+    background: #3498db;
+    color: white;
+    padding: 5px 10px;
+    border-radius: 8px;
+    font-size: 16px;
+  }
+  .action-btn {
+    background-color: #e67e22;
+    border: none;
+    padding: 5px 8px;
+    color: white;
+    cursor: pointer;
+    border-radius: 5px;
+    margin: 0 2px;
+    font-size: 14px;
+  }
+  .action-btn.delete {
+    background-color: #c0392b;
+  }
+</style>
+</head>
+<body>
+
+<div id="splash" class="section active">
+  <h1 class="blinking">مرحباً بكم في نظام إدارة الفواتير بمسالخ الظفرة</h1>
+</div>
+
+<div id="login" class="section">
+  <h2>تسجيل الدخول</h2>
+  <label for="employeeId">الرقم الوظيفي:</label>
+  <input type="text" id="employeeId" autocomplete="off" />
+  <button onclick="login()">دخول</button>
+  <button onclick="closeProgram()">إلغاء</button>
+</div>
+
+<div id="dashboard" class="section">
+  <h2>مرحباً <span id="username"></span></h2>
+  <button onclick="showSection('manageUsers')">إدارة المستخدمين</button>
+  <button onclick="showSection('settings')">الإعدادات</button>
+  <button onclick="showSection('dataEntry')">إدخال البيانات</button>
+  <button onclick="showSection('report')">تقرير المتعاملين</button>
+  <button onclick="logout()">تسجيل خروج</button>
+</div>
+
+<div id="manageUsers" class="section">
+  <h2>قائمة المستخدمين</h2>
+  <table id="usersTable">
+    <thead>
+      <tr>
+        <th>الرقم الوظيفي</th>
+        <th>اسم المستخدم</th>
+        <th>الدور</th>
+        <th>الموقع</th>
+        <th>إجراءات</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <h3>إضافة مستخدم جديد</h3>
+  <label>رقم وظيفي:</label>
+  <input type="text" id="newUserId" autocomplete="off" />
+  <label>اسم المستخدم:</label>
+  <input type="text" id="newUserName" autocomplete="off" />
+  <label>الدور:</label>
+  <select id="newUserRole">
+    <option value="admin">مسؤول</option>
+    <option value="user">مستخدم</option>
+  </select>
+  <label>الموقع:</label>
+  <select id="newUserSite"></select>
+  <button onclick="addUser()">إضافة</button>
+  <button onclick="showSection('dashboard')">رجوع</button>
+</div>
+
+<div id="settings" class="section">
+  <h2>الإعدادات</h2>
+  <h3>المواقع</h3>
+  <input type="text" id="newSite" placeholder="موقع جديد" autocomplete="off" />
+  <button onclick="addSite()">إضافة موقع</button>
+  <ul id="sitesList"></ul>
+  <h3>أنواع الذبائح</h3>
+  <input type="text" id="newAnimal" placeholder="نوع ذبيحة جديد" autocomplete="off" />
+  <button onclick="addAnimal()">إضافة نوع</button>
+  <ul id="animalsList"></ul>
+  <h3>أنواع التقطيع</h3>
+  <input type="text" id="newCutting" placeholder="نوع تقطيع جديد" autocomplete="off" />
+  <button onclick="addCutting()">إضافة تقطيع</button>
+  <ul id="cuttingsList"></ul>
+  <h3>تعيين الأسعار</h3>
+  <label>نوع الذبيحة:</label>
+  <select id="priceAnimal"></select>
+  <label>نوع التقطيع:</label>
+  <select id="priceCutting"></select>
+  <input type="number" id="priceValue" placeholder="السعر" min="0" />
+  <button onclick="setPrice()">تعيين سعر</button>
+  <button onclick="showSection('dashboard')">رجوع</button>
+</div>
+
+<div id="dataEntry" class="section">
+  <h2 id="dataEntrySiteTitle" class="centered"></h2>
+  <label>رقم الفاتورة:</label>
+  <input type="text" id="invoiceNumber" readonly />
+  <label>رقم التليفون:</label>
+  <input type="text" id="phone" autocomplete="off" oninput="lookupClient()" />
+  <label>اسم المتعامل:</label>
+  <input type="text" id="clientName" autocomplete="off" />
+  <div class="inline-row">
+    <div class="inline-item">
+      <label>نوع الذبيحة:</label>
+      <select id="animalType" onchange="updatePrice()"></select>
+    </div>
+    <div class="inline-item">
+      <label>نوع التقطيع:</label>
+      <select id="cuttingType" onchange="updatePrice()"></select>
+    </div>
+    <div class="inline-item">
+      <label>رقم الذبيحة:</label>
+      <select id="animalNumber"></select>
+    </div>
+    <div class="inline-item">
+      <label>رقم الاستيكر:</label>
+      <select id="stickerNumber"></select>
+    </div>
+  </div>
+  <label>عدد الذبائح:</label>
+  <select id="quantity" onchange="updatePrice()"></select>
+  <label>طريقة الدفع:</label>
+  <label><input type="radio" name="paymentType" value="كاش" checked /> كاش</label>
+  <label><input type="radio" name="paymentType" value="بطاقة" /> بطاقة</label>
+  <label>سعر الوحدة:</label>
+  <input type="number" id="unitPrice" readonly />
+  <label>الإجمالي:</label>
+  <input type="number" id="totalPrice" readonly />
+  <button onclick="showInvoice()">معاينة الفاتورة</button>
+  <button onclick="saveData()">إضافة</button>
+  <button onclick="showSection('dashboard')">رجوع</button>
+</div>
+
+<div id="report" class="section">
+  <h2>تقرير المتعاملين</h2>
+  <table id="reportTable">
+    <thead>
+      <tr>
+        <th>الموقع</th>
+        <th>اسم المتعامل</th>
+        <th>رقم التليفون</th>
+        <th>رقم الفاتورة</th>
+        <th>نوع الذبيحة</th>
+        <th>نوع التقطيع</th>
+        <th>عدد الذبائح</th>
+        <th>طريقة الدفع</th>
+        <th>سعر الوحدة</th>
+        <th>الإجمالي</th>
+        <th>تاريخ الإدخال</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+  <button onclick="showSection('dashboard')">رجوع</button>
+</div>
+
+<div id="invoicePreview" class="section invoice">
+  <h3>فاتورة</h3>
+  <table>
+    <tr><th>رقم الفاتورة</th><td id="invNo"></td></tr>
+    <tr><th>اسم المتعامل</th><td id="invClient"></td></tr>
+    <tr><th>رقم التليفون</th><td id="invPhone"></td></tr>
+    <tr><th>نوع الذبيحة</th><td id="invAnimalType"></td></tr>
+    <tr><th>نوع التقطيع</th><td id="invCuttingType"></td></tr>
+    <tr><th>عدد الذبائح</th><td id="invQty"></td></tr>
+    <tr><th>سعر الوحدة</th><td id="invUnitPrice"></td></tr>
+    <tr><th>الإجمالي</th><td id="invTotal"></td></tr>
+    <tr><th>طريقة الدفع</th><td id="invPaymentType"></td></tr>
+    <tr><th>تاريخ الإدخال</th><td id="invDate"></td></tr>
+  </table>
+  <button onclick="window.print()">🖨️ طباعة</button>
+  <button onclick="showSection('dataEntry')">رجوع</button>
+</div>
+
+<div id="clock"></div>
+
+<script>
+  // نفس كود JS الكامل اللي أعطيتك قبل كده هنا
+  // هبدأ نفسح الكود كامل كده:
+
+let users = [
+  { id: "100", name: "مسؤول", role: "admin", site: "مسلخ غياثي" },
+  { id: "200", name: "مستخدم1", role: "user", site: "مسلخ مدينة" }
+];
+
+let sites = ["مسلخ غياثي", "مسلخ مدينة"];
+let animals = ["خروف", "ماعز", "بقر", "جمل"];
+let cuttings = ["عزيمة", "ثلاجة"];
+let prices = {};
+
+let invoices = [];
+let currentUser = null;
+let invoiceCounter = 1;
+
+window.onload = () => {
+  showSection("splash");
+  setTimeout(() => {
+    showSection("login");
+  }, 2000);
+  updateClock();
+  setInterval(updateClock, 1000);
+  populateInitialData();
+};
+
+function updateClock() {
+  const clock = document.getElementById("clock");
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString("ar-EG", { hour12: false });
+  const dateStr = now.toLocaleDateString("ar-EG");
+  clock.textContent = `${dateStr} ${timeStr}`;
+}
+
+function showSection(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+function populateInitialData() {
+  fillSelect("priceAnimal", animals);
+  fillSelect("priceCutting", cuttings);
+  fillSelect("animalType", animals);
+  fillSelect("cuttingType", cuttings);
+  fillSelect("animalNumber", Array.from({ length: 50 }, (_, i) => i + 1));
+  fillSelect("stickerNumber", Array.from({ length: 100 }, (_, i) => i + 1));
+  fillSelect("quantity", Array.from({ length: 50 }, (_, i) => i + 1));
+  refreshUsersTable();
+  refreshSitesList();
+  refreshAnimalsList();
+  refreshCuttingsList();
+  updateInvoiceNumber();
+}
+
+function fillSelect(id, items) {
+  const select = document.getElementById(id);
+  select.innerHTML = "";
+  items.forEach(item => {
+    let option = document.createElement("option");
+    option.value = item;
+    option.textContent = item;
+    select.appendChild(option);
+  });
+}
+
+function updateInvoiceNumber() {
+  document.getElementById("invoiceNumber").value = invoiceCounter.toString().padStart(5, "0");
+}
+
+function login() {
+  const empId = document.getElementById("employeeId").value.trim();
+  if (!empId) {
+    alert("الرجاء إدخال الرقم الوظيفي");
+    return;
+  }
+  const user = users.find(u => u.id === empId);
+  if (!user) {
+    alert("المستخدم غير موجود");
+    return;
+  }
+  currentUser = user;
+  document.getElementById("username").textContent = currentUser.name;
+  setupDataEntrySite();
+  showSection("dashboard");
+  clearDataEntryForm();
+}
+
+function setupDataEntrySite() {
+  const title = document.getElementById("dataEntrySiteTitle");
+  if (currentUser.role === "admin") {
+    title.textContent = "كل المواقع متاحة للمسؤول";
+  } else {
+    title.textContent = `الموقع: ${currentUser.site}`;
+  }
+}
+
+function logout() {
+  currentUser = null;
+ 
